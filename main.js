@@ -103,6 +103,10 @@ const is_border = (grid, i, j) => {
   return i == 0 || i == grid.length - 1 || j == 0 || j == grid[0].length - 1;
 }
 
+const is_wall_or_border = (grid, i, j) => {
+  return is_wall(grid, i, j) || is_border(grid, i, j);
+}
+
 const print_embedded_grid = (grid) => {
   // console.log(grid.length);
 
@@ -193,31 +197,38 @@ const do_loop = (grid) => {
   print_grid_and_player(grid);
 }
 
+const up_keys = ['up', 'w'];
+const down_keys = ['down', 's'];
+const left_keys = ['left', 'a'];
+const right_keys = ['right', 'd'];
+
 const handle_input = (str, key) => {
   if (str == 'q') {
     process.exit(0);
   }
 
-  console.log(str);
-  console.log(key);
+  // console.log(str);
+  // console.log(key);
 
-  // w / up
-  if (key.name == 'up' || key.name == 'w') {
+  const { name: key_name } = key
+
+  // w / up (decrease x position -- 0 is top)
+  if (up_keys.includes(key_name) && !is_wall_or_border(grid, player_position[0] - 1, player_position[1])) {
     player_position[0]--;
   }
 
-  // s / down
-  if (key.name == 'down' || key.name == 's') {
+  // s / down (increase x position)
+  if (down_keys.includes(key_name) && !is_wall_or_border(grid, player_position[0] + 1, player_position[1])) {
     player_position[0]++;
   }
 
-  // a / left
-  if (key.name == 'left' || key.name == 'a') {
+  // a / left (decrease y position -- 0 is far left)
+  if (left_keys.includes(key_name) && !is_wall_or_border(grid, player_position[0], player_position[1] - 1)) {
     player_position[1]--;
   }
 
-  // d / right
-  if (key.name == 'right' || key.name == 'd') {
+  // d / right (increase y position)
+  if (right_keys.includes(key_name) && !is_wall_or_border(grid, player_position[0], player_position[1] + 1)) {
     player_position[1]++;
   }
 
@@ -238,8 +249,6 @@ if (process.stdin.isTTY) {
 
 process.stdin.on('keypress', (str, key) => handle_input(str, key));
 
-const player_position = [0, 0];
-
 // var grid = generate_grid();
 // var grid = combine_grid(generate_grid(), generate_grid());
 var grid = combine_grid(
@@ -249,6 +258,8 @@ var grid = combine_grid(
 
 // make a border around the grid
 grid = embed_grid_in_border(grid);
+
+const player_position = [Math.floor(Math.random() * max_columns), Math.floor(Math.random() * max_rows)];
 
 // ensure there are no entries in the grid that are not walls that are not touching any other non-walls
 var new_grid = ensure_no_isolated_spaces(grid);
