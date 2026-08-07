@@ -1,4 +1,4 @@
-import { createInterface, emitKeypressEvents } from 'readline';
+import { emitKeypressEvents } from 'readline';
 
 // create 50x100 grid of cells and print them
 
@@ -107,16 +107,16 @@ const is_wall_or_border = (grid, i, j) => {
   return is_wall(grid, i, j) || is_border(grid, i, j);
 }
 
-const print_embedded_grid = (grid) => {
-  // console.log(grid.length);
+// const print_embedded_grid = (grid) => {
+//   // console.log(grid.length);
 
-  for (let i = 0; i < grid.length; i++) {
-    for (let j = 0; j < grid[0].length; j++) {
-      process.stdout.write(grid[i][j]);
-    }
-    console.log('');
-  }
-}
+//   for (let i = 0; i < grid.length; i++) {
+//     for (let j = 0; j < grid[0].length; j++) {
+//       process.stdout.write(grid[i][j]);
+//     }
+//     console.log('');
+//   }
+// }
 
 const ensure_no_isolated_spaces = (grid) => {
   // this works for singular spaces but not for a multi-space area that is not connected to the rest of the grid
@@ -176,6 +176,20 @@ const ensure_no_isolated_spaces = (grid) => {
   return new_grid;
 }
 
+const find_valid_starting_position = (grid) => {
+  let starting_position = [
+    /*   rows  */ Math.floor(5 + Math.random() * (grid.length - 5)),
+    /* columns */ Math.floor(5 + Math.random() * (grid[0].length - 5))
+  ];
+
+  // check if starting position is valid
+  if (is_wall(grid, starting_position[0], starting_position[1])) {
+    return find_valid_starting_position(grid);
+  }
+
+  return starting_position;
+}
+
 // does not account for the border around the grid
 const print_grid_and_player = (grid) => {
   // take the grid as it is (currently embedded) and overlay the player on top
@@ -232,7 +246,7 @@ const handle_input = (str, key) => {
     player_position[1]++;
   }
 
-  console.log(player_position);
+  // console.log(player_position);
 
   do_loop(grid);
 }
@@ -259,9 +273,9 @@ var grid = combine_grid(
 // make a border around the grid
 grid = embed_grid_in_border(grid);
 
-const player_position = [Math.floor(Math.random() * max_columns), Math.floor(Math.random() * max_rows)];
-
 // ensure there are no entries in the grid that are not walls that are not touching any other non-walls
 var new_grid = ensure_no_isolated_spaces(grid);
+
+const player_position = find_valid_starting_position(new_grid)
 
 do_loop(new_grid);
