@@ -95,16 +95,10 @@ const embed_grid_in_border = (grid) => {
   return embedded_grid;
 }
 
-const is_wall = (grid, i, j) => {
-  return grid[i][j] == "X";
-}
-
-const is_border = (grid, i, j) => {
-  return i == 0 || i == grid.length - 1 || j == 0 || j == grid[0].length - 1;
-}
-
 const is_wall_or_border = (grid, i, j) => {
-  return is_wall(grid, i, j) || is_border(grid, i, j);
+  let is_wall = grid[i][j] == "X";
+  let is_border = i == 0 || i == grid.length - 1 || j == 0 || j == grid[0].length - 1;
+  return is_wall || is_border;
 }
 
 const ensure_no_isolated_spaces = (grid) => {
@@ -120,7 +114,7 @@ const ensure_no_isolated_spaces = (grid) => {
     new_grid[i] = [];
     for (let j = 0; j < grid[0].length; j++) {
       // if the cell is a wall or a border, copy it over and continue
-      if (is_wall(grid, i, j) || is_border(grid, i, j)) {
+      if (is_wall_or_border(grid, i, j)) {
         // console.log(`i: ${i}, j: ${j}`);
         // console.log(new_grid);
         new_grid[i][j] = grid[i][j];
@@ -134,22 +128,22 @@ const ensure_no_isolated_spaces = (grid) => {
       let touching_spaces = 0;
 
       // check up
-      if (up >= 0 && !is_wall(grid, up, j) && !is_border(grid, up, j)) {
+      if (up >= 0 && !is_wall_or_border(grid, up, j)) {
         touching_spaces++;
       }
 
       // check down
-      if (down < grid.length && !is_wall(grid, down, j) && !is_border(grid, down, j)) {
+      if (down < grid.length && !is_wall_or_border(grid, down, j)) {
         touching_spaces++;
       }
 
       // check left
-      if (left >= 0 && !is_wall(grid, i, left) && !is_border(grid, i, left)) {
+      if (left >= 0 && !is_wall_or_border(grid, i, left)) {
         touching_spaces++;
       }
 
       // check right
-      if (right < grid[0].length && !is_wall(grid, i, right) && !is_border(grid, i, right)) {
+      if (right < grid[0].length && !is_wall_or_border(grid, i, right)) {
         touching_spaces++;
       }
 
@@ -186,7 +180,7 @@ const find_valid_starting_position = (grid) => {
   ];
 
   // check if starting position is valid
-  if (is_wall(grid, starting_position[0], starting_position[1])) {
+  if (is_wall_or_border(grid, starting_position[0], starting_position[1])) {
     return find_valid_starting_position(grid);
   }
 
@@ -270,7 +264,6 @@ const handle_input = (str, key) => {
 }
 
 emitKeypressEvents(process.stdin);
-process.stdin.setRawMode(true);
 
 if (process.stdin.isTTY) {
   process.stdin.setRawMode(true);
