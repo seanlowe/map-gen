@@ -207,18 +207,19 @@ const generate_grid_mask = (grid) => {
 
 const print_grid_and_player = (grid, grid_mask, player_position) => {
   for (let i = 0; i < grid.length; i++) {
+    let current_row = '';
     for (let j = 0; j < grid[0].length; j++) {
       if (i == player_position[0] && j == player_position[1]) {
-        process.stdout.write("@");
+        current_row += "@";
       } else {
         if (grid_mask[i][j]) {
-          process.stdout.write(grid[i][j]);
+          current_row += grid[i][j];
         } else {
-          process.stdout.write("#");
+          current_row += "#";
         }
       }
     }
-    console.log('');
+    console.log(current_row);
   }
 }
 
