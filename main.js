@@ -206,21 +206,22 @@ const generate_grid_mask = (grid) => {
 }
 
 const print_grid_and_player = (grid, grid_mask, player_position) => {
+  let print_string = '';
   for (let i = 0; i < grid.length; i++) {
-    let current_row = '';
     for (let j = 0; j < grid[0].length; j++) {
       if (i == player_position[0] && j == player_position[1]) {
-        current_row += "@";
+        print_string += "@";
       } else {
         if (grid_mask[i][j]) {
-          current_row += grid[i][j];
+          print_string += grid[i][j];
         } else {
-          current_row += "#";
+          print_string += "#";
         }
       }
     }
-    console.log(current_row);
+    print_string += "\n";
   }
+  console.log(print_string);
 }
 
 const do_loop = (grid, grid_mask, player_position) => {
