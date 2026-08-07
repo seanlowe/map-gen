@@ -1,3 +1,5 @@
+import { createInterface, emitKeypressEvents } from 'readline';
+
 // create 50x100 grid of cells and print them
 
 const max_columns = 100;
@@ -17,18 +19,18 @@ const generate_grid = () => {
   return grid;
 }
 
-const print_grid = (grid) => {
-  for (let i = 0; i < max_rows; i++) {
-    for (let j = 0; j < max_columns; j++) {
-      if (grid[i][j]) {
-        process.stdout.write("X");
-      } else {
-        process.stdout.write(" ");
-      }
-    }
-    console.log('');
-  }
-}
+// const print_grid = (grid) => {
+//   for (let i = 0; i < max_rows; i++) {
+//     for (let j = 0; j < max_columns; j++) {
+//       if (grid[i][j]) {
+//         process.stdout.write("X");
+//       } else {
+//         process.stdout.write(" ");
+//       }
+//     }
+//     console.log('');
+//   }
+// }
 
 const combine_grid = (grid_1, grid_2) => {
   const combined_grid = [];
@@ -113,6 +115,13 @@ const print_embedded_grid = (grid) => {
 }
 
 const ensure_no_isolated_spaces = (grid) => {
+  // this works for singular spaces but not for a multi-space area that is not connected to the rest of the grid
+  // i.e.
+  // XXXX
+  // X  X
+  // XXXX
+  // because the inside spots are touching at least 1 space, they are left alone
+
   let new_grid = [];
   for (let i = 0; i < grid.length; i++) {
     new_grid[i] = [];
@@ -124,18 +133,18 @@ const ensure_no_isolated_spaces = (grid) => {
         new_grid[i][j] = grid[i][j];
         continue;
       }
-  
+
       let up = i - 1;
       let down = i + 1;
       let left = j - 1;
       let right = j + 1;
       let touching_spaces = 0;
-  
+
       // check up
       if (up >= 0 && !is_wall(grid, up, j) && !is_border(grid, up, j)) {
         touching_spaces++;
       }
-  
+
       // check down
       if (down < grid.length && !is_wall(grid, down, j) && !is_border(grid, down, j)) {
         touching_spaces++;
@@ -163,6 +172,74 @@ const ensure_no_isolated_spaces = (grid) => {
   return new_grid;
 }
 
+// does not account for the border around the grid
+const print_grid_and_player = (grid) => {
+  // take the grid as it is (currently embedded) and overlay the player on top
+  // iterate over the grid and print the values, but if the value is the player, print a @
+  for (let i = 0; i < grid.length; i++) {
+    for (let j = 0; j < grid[0].length; j++) {
+      if (i == player_position[0] && j == player_position[1]) {
+        process.stdout.write("@");
+      } else {
+        process.stdout.write(grid[i][j]);
+      }
+    }
+    console.log('');
+  }
+}
+
+const do_loop = (grid) => {
+  console.clear();
+  print_grid_and_player(grid);
+}
+
+const handle_input = (str, key) => {
+  if (str == 'q') {
+    process.exit(0);
+  }
+
+  console.log(str);
+  console.log(key);
+
+  // w / up
+  if (key.name == 'up' || key.name == 'w') {
+    player_position[0]--;
+  }
+
+  // s / down
+  if (key.name == 'down' || key.name == 's') {
+    player_position[0]++;
+  }
+
+  // a / left
+  if (key.name == 'left' || key.name == 'a') {
+    player_position[1]--;
+  }
+
+  // d / right
+  if (key.name == 'right' || key.name == 'd') {
+    player_position[1]++;
+  }
+
+  console.log(player_position);
+
+  do_loop(grid);
+}
+
+emitKeypressEvents(process.stdin);
+process.stdin.setRawMode(true);
+
+if (process.stdin.isTTY) {
+  process.stdin.setRawMode(true);
+} else {
+  console.error("Error: process.stdin is not a TTY. Raw mode cannot be set.");
+  process.exit(1);
+}
+
+process.stdin.on('keypress', (str, key) => handle_input(str, key));
+
+const player_position = [0, 0];
+
 // var grid = generate_grid();
 // var grid = combine_grid(generate_grid(), generate_grid());
 var grid = combine_grid(
@@ -175,20 +252,5 @@ grid = embed_grid_in_border(grid);
 
 // ensure there are no entries in the grid that are not walls that are not touching any other non-walls
 var new_grid = ensure_no_isolated_spaces(grid);
-// this works for singular spaces but not for a multi-space area that is not connected to the rest of the grid
-// i.e.
-// XXXX
-// X  X
-// XXXX
-// because the inside spots are touching at least 1 space, they are left alone
 
-// print the grid
-print_embedded_grid(new_grid);
-
-
-
-// ideas for bigger whatever
-// each 1 wall is actually 3 spaces
-// while loop and move a player through the grid
-// generate grids in batches (chunking)
-// only display a small portion of the grid at a time
+do_loop(new_grid);
