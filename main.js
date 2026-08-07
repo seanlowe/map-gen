@@ -107,17 +107,6 @@ const is_wall_or_border = (grid, i, j) => {
   return is_wall(grid, i, j) || is_border(grid, i, j);
 }
 
-// const print_embedded_grid = (grid) => {
-//   // console.log(grid.length);
-
-//   for (let i = 0; i < grid.length; i++) {
-//     for (let j = 0; j < grid[0].length; j++) {
-//       process.stdout.write(grid[i][j]);
-//     }
-//     console.log('');
-//   }
-// }
-
 const ensure_no_isolated_spaces = (grid) => {
   // this works for singular spaces but not for a multi-space area that is not connected to the rest of the grid
   // i.e.
@@ -176,6 +165,20 @@ const ensure_no_isolated_spaces = (grid) => {
   return new_grid;
 }
 
+const reveal_area = (grid_mask, [row, column]) => {
+  let radius = 5;
+  let starting_row = row - radius;
+  let starting_column = column - radius;
+
+  for (let i = starting_row; i < row + radius; i++) {
+    for (let j = starting_column; j < column + radius; j++) {
+      if (i >= 0 && i < grid_mask?.length && j >= 0 && j < grid_mask?.[0]?.length) {
+        grid_mask[i][j] = true;
+      }
+    }
+  }
+}
+
 const find_valid_starting_position = (grid) => {
   let starting_position = [
     /*   rows  */ Math.floor(5 + Math.random() * (grid.length - 5)),
@@ -190,25 +193,39 @@ const find_valid_starting_position = (grid) => {
   return starting_position;
 }
 
-// does not account for the border around the grid
-const print_grid_and_player = (grid) => {
-  // take the grid as it is (currently embedded) and overlay the player on top
-  // iterate over the grid and print the values, but if the value is the player, print a @
+const generate_grid_mask = (grid) => {
+  let grid_mask = [];
+  for (let i = 0; i < grid.length; i++) {
+    grid_mask[i] = [];
+    for (let j = 0; j < grid[0].length; j++) {
+      grid_mask[i][j] = false;
+    }
+  }
+
+  return grid_mask;
+}
+
+const print_grid_and_player = (grid, grid_mask, player_position) => {
   for (let i = 0; i < grid.length; i++) {
     for (let j = 0; j < grid[0].length; j++) {
       if (i == player_position[0] && j == player_position[1]) {
         process.stdout.write("@");
       } else {
-        process.stdout.write(grid[i][j]);
+        if (grid_mask[i][j]) {
+          process.stdout.write(grid[i][j]);
+        } else {
+          process.stdout.write("#");
+        }
       }
     }
     console.log('');
   }
 }
 
-const do_loop = (grid) => {
+const do_loop = (grid, grid_mask, player_position) => {
   console.clear();
-  print_grid_and_player(grid);
+  reveal_area(grid_mask, player_position);
+  print_grid_and_player(grid, grid_mask, player_position);
 }
 
 const up_keys = ['up', 'w'];
@@ -220,9 +237,6 @@ const handle_input = (str, key) => {
   if (str == 'q') {
     process.exit(0);
   }
-
-  // console.log(str);
-  // console.log(key);
 
   const { name: key_name } = key
 
@@ -246,9 +260,7 @@ const handle_input = (str, key) => {
     player_position[1]++;
   }
 
-  // console.log(player_position);
-
-  do_loop(grid);
+  do_loop(grid, grid_mask, player_position);
 }
 
 emitKeypressEvents(process.stdin);
@@ -276,6 +288,8 @@ grid = embed_grid_in_border(grid);
 // ensure there are no entries in the grid that are not walls that are not touching any other non-walls
 var new_grid = ensure_no_isolated_spaces(grid);
 
-const player_position = find_valid_starting_position(new_grid)
+var grid_mask = generate_grid_mask(new_grid);
 
-do_loop(new_grid);
+var player_position = find_valid_starting_position(new_grid)
+
+do_loop(new_grid, grid_mask, player_position);
