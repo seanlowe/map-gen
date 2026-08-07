@@ -238,27 +238,31 @@ const handle_input = (str, key) => {
     process.exit(0);
   }
 
+  let [row, column] = player_position;
+
   const { name: key_name } = key
 
   // w / up (decrease x position -- 0 is top)
-  if (up_keys.includes(key_name) && !is_wall_or_border(grid, player_position[0] - 1, player_position[1])) {
-    player_position[0]--;
+  if (up_keys.includes(key_name) && !is_wall_or_border(grid, row - 1, column)) {
+    row--;
   }
 
   // s / down (increase x position)
-  if (down_keys.includes(key_name) && !is_wall_or_border(grid, player_position[0] + 1, player_position[1])) {
-    player_position[0]++;
+  if (down_keys.includes(key_name) && !is_wall_or_border(grid, row + 1, column)) {
+    row++;
   }
 
   // a / left (decrease y position -- 0 is far left)
-  if (left_keys.includes(key_name) && !is_wall_or_border(grid, player_position[0], player_position[1] - 1)) {
-    player_position[1]--;
+  if (left_keys.includes(key_name) && !is_wall_or_border(grid, row, column - 1)) {
+    column--;
   }
 
   // d / right (increase y position)
-  if (right_keys.includes(key_name) && !is_wall_or_border(grid, player_position[0], player_position[1] + 1)) {
-    player_position[1]++;
+  if (right_keys.includes(key_name) && !is_wall_or_border(grid, row, column + 1)) {
+    column++;
   }
+
+  player_position = [row, column];
 
   do_loop(grid, grid_mask, player_position);
 }
