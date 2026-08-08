@@ -160,13 +160,70 @@ const ensure_no_isolated_spaces = (grid) => {
 }
 
 const reveal_area = (grid_mask, [row, column]) => {
-  let radius = 5;
-  let starting_row = row - radius;
-  let starting_column = column - radius;
+  // reveal area in a circular area around the starting position
+  //
+  //        ####21A12####
+  //        ##4321B1234##
+  //        654321C123456
+  //        654321x123456
+  //        6543211123456
+  //        ##432111234##
+  //        ####21112####
+  //
+  // radius 3 for Y
+  // radius 6 for X
 
-  for (let i = starting_row; i < row + radius; i++) {
-    for (let j = starting_column; j < column + radius; j++) {
-      if (i >= 0 && i < grid_mask?.length && j >= 0 && j < grid_mask?.[0]?.length) {
+  let x_radius = 6;
+  let y_radius = 3;
+
+  let starting_row = row - y_radius;
+  let starting_column = column - x_radius;
+
+  // new thought
+  // 2 + (abs(edge_row - current_row) * 2) for number of spaces to clear based on distance from edge of radius
+  // total distance is x_radius * 2 + 1
+  // so for number of spaces to not clear it would be total distance / 2 on the beginning and end
+  // 
+  // top edge    row would be row 47
+  // center      row would be row 50
+  // bottom edge row would be row 53
+  // (47 - 47) * 2 + 2 = 2
+  // (48 - 47) * 2 + 2 = 4
+  // (49 - 47) * 2 + 2 = 6
+  // center row has full x radius
+  // (51 - 53) * 2 + 2 = 6
+  // (52 - 53) * 2 + 2 = 4
+  // (53 - 53) * 2 + 2 = 2
+  // these are places to clear calculated per quadrant, and the Y axis is always rendered so it would be row_result * 2 + 1
+  let ending_row = row + y_radius;
+  let ending_column = column + x_radius;
+  for (let i = starting_row; i <= ending_row; i++) {
+    if (i < 0 || i >= grid_mask?.length) {
+      // no need to try to reveal areas that are out of bounds
+      continue;
+    }
+
+    let distance_from_edge = -1;
+    if (i == row) {
+      distance_from_edge = y_radius
+    } else {
+      distance_from_edge = i < row ? Math.abs(i - starting_row) : Math.abs(i - ending_row);
+    }
+
+    const length_to_clear = (distance_from_edge * 2) + 2;
+    const padded_uncleared_spaces_one_side = x_radius - length_to_clear;
+
+    let new_row = [];
+    append_n_times(new_row, padded_uncleared_spaces_one_side, false, 0);
+    append_n_times(new_row, length_to_clear * 2, true, new_row.length);
+    append_n_times(new_row, padded_uncleared_spaces_one_side, false, new_row.length);
+
+    // can't just splice in the new row because it will overwrite whether or not something has been revealed previously
+    // so instead, loop over the columns in the current row and check old value versus new value, then set the new value
+    for (let j = starting_column; j < ending_column; j++) {
+      const is_valid_position = i >= 0 && i < grid_mask?.length && j >= 0 && j < grid_mask?.[0]?.length;
+      const should_be_revealed = grid_mask[i][j] || new_row[j - starting_column];
+      if (is_valid_position && should_be_revealed) {
         grid_mask[i][j] = true;
       }
     }
@@ -185,6 +242,16 @@ const find_valid_starting_position = (grid) => {
   }
 
   return starting_position;
+}
+
+const append_n_times = (receiving_arr, num_to_append, value_to_append, where_to_append) => {
+  if (num_to_append < 0) {
+    return receiving_arr
+  }
+
+  receiving_arr.splice(where_to_append, 0, ...Array(num_to_append).fill(value_to_append));
+
+  return receiving_arr;
 }
 
 const generate_grid_mask = (grid) => {
