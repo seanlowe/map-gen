@@ -1,4 +1,5 @@
 import { emitKeypressEvents } from 'readline';
+import { generate_perlin_grid } from './perlin.js';
 
 // create 50x100 grid of cells and print them
 
@@ -19,6 +20,7 @@ const generate_grid = () => {
   return grid;
 }
 
+// for printing the output of "generate_grid" directly
 // const print_grid = (grid) => {
 //   for (let i = 0; i < max_rows; i++) {
 //     for (let j = 0; j < max_columns; j++) {
@@ -30,6 +32,17 @@ const generate_grid = () => {
 //     }
 //     console.log('');
 //   }
+// }
+
+// const print_grid2 = (grid) => {
+//   let to_print = '';
+//   for (let i = 0; i < grid.length; i++) {
+//     for (let j = 0; j < grid[0].length; j++) {
+//       to_print += grid[i][j]
+//     }
+//     to_print += "\n";
+//   }
+//   console.log(to_print);
 // }
 
 const combine_grid = (grid_1, grid_2) => {
@@ -93,6 +106,28 @@ const embed_grid_in_border = (grid) => {
   }
 
   return embedded_grid;
+}
+
+const embed_perlin_grid_in_border = (grid) => {
+  let new_grid = [];
+  let horizontal_border = [...new Array(grid[0].length).fill("_")];
+  let top_border = [".", ...horizontal_border, "."]
+  let bottom_border = ["|", ...horizontal_border, "|"]
+
+  new_grid.push(top_border);
+
+  for (let i = 0; i < grid.length; i++) {
+    let new_row = ["|"];
+    for (let j = 0; j < grid[0].length; j++) {
+      new_row.push(grid[i][j] <= 0.5 ? " " : "X");
+    }
+    new_row.push("|");
+    new_grid.push(new_row);
+  }
+
+  new_grid.push(bottom_border);
+
+  return new_grid;
 }
 
 const is_wall_or_border = (grid, i, j) => {
@@ -244,6 +279,20 @@ const find_valid_starting_position = (grid) => {
   return starting_position;
 }
 
+const find_valid_starting_position_perlin = (grid) => {
+  var coordinates = [];
+
+  for (var i = 0; i < grid.length; i++) {
+    for (var j = 0; j < grid[i].length; j++) {
+      if (grid[i][j] <= 0.5) {
+        coordinates.push([i, j]);
+      }
+    }
+  }
+
+  return coordinates[Math.floor(Math.random() * coordinates.length)];
+}
+
 const append_n_times = (receiving_arr, num_to_append, value_to_append, where_to_append) => {
   if (num_to_append < 0) {
     return receiving_arr
@@ -339,23 +388,23 @@ if (process.stdin.isTTY) {
   process.exit(1);
 }
 
-process.stdin.on('keypress', (str, key) => handle_input(str, key));
+process.stdin.on('keypress', (str, key) => handle_input(str, key)); // relies on the grid variable being named "grid"
 
-// var grid = generate_grid();
-// var grid = combine_grid(generate_grid(), generate_grid());
-var grid = combine_grid(
-  combine_grid(generate_grid(), generate_grid()),
-  generate_grid()
-);
-
+// var grid = combine_grid(
+//   combine_grid(generate_grid(), generate_grid()),
+//   generate_grid()
+// );
 // make a border around the grid
-grid = embed_grid_in_border(grid);
-
+// grid = embed_grid_in_border(grid);
 // ensure there are no entries in the grid that are not walls that are not touching any other non-walls
-var new_grid = ensure_no_isolated_spaces(grid);
+// var new_grid = ensure_no_isolated_spaces(grid);
+// var grid_mask = generate_grid_mask(new_grid);
+// var player_position = find_valid_starting_position(new_grid)
+// do_loop(new_grid, grid_mask, player_position);
 
-var grid_mask = generate_grid_mask(new_grid);
-
-var player_position = find_valid_starting_position(new_grid)
-
-do_loop(new_grid, grid_mask, player_position);
+// perlin
+var grid = generate_perlin_grid();
+grid = embed_perlin_grid_in_border(grid);
+var grid_mask = generate_grid_mask(grid);
+var player_position = find_valid_starting_position_perlin(grid);
+do_loop(grid, grid_mask, player_position);

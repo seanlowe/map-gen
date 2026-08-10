@@ -19,8 +19,8 @@
 //           formula is: (1 - dy)*top + dy*bottom
 
 const GRID_WIDTH = 5;
-const MAX_COLUMNS = 101;
-const MAX_ROWS = 51;
+const MAX_COLUMNS = 100;
+const MAX_ROWS = 50;
 
 // todo: rename x,y to columns and rows for consistency / better understanding later on when I don't remember exactly what I'm doing
 
@@ -46,16 +46,6 @@ const get_four_corners = (row, column) => {
 
 const random_direction = () => {
   return Math.random() * 2 * Math.PI;
-}
-
-const get_corner_directions = (grid, corner_coordinates) => {
-  let corner_directions = [];
-
-  corner_coordinates.forEach(([x, y]) => {
-    corner_directions.push(grid[x][y]);
-  });
-
-  return corner_directions;
 }
 
 const calculate_dot_product = ([corner_x, corner_y], corner_direction, x, y) => {
@@ -96,18 +86,8 @@ export const generate_perlin_grid = () => {
   let grid_corners = generate_grid_corner_vectors();
 
   for (let i = 0; i < MAX_ROWS; i++) {
-    // we will have set the rows on grid boundaries to exist already
-    // so any that do not exist will be undefined and need setting
-    if (grid[i] === undefined) {
-      grid[i] = [];
-    }
-
+    grid[i] = [];
     for (let j = 0; j < MAX_COLUMNS; j++) {
-      // if (i % GRID_WIDTH == 0 && j % GRID_WIDTH == 0) {
-      //   // corner, should already have a vector, skip
-      //   continue;
-      // }
-
       const [
         top_left_corner,
         top_right_corner,
@@ -142,22 +122,22 @@ export const generate_perlin_grid = () => {
 }
 
 
-const grid = generate_perlin_grid();
+// const grid = generate_perlin_grid();
 
 
-for (let i = 0; i < MAX_ROWS; i++) {
-  let row = "";
+// for (let i = 0; i < MAX_ROWS; i++) {
+//   let row = "";
 
-  for (let j = 0; j < MAX_COLUMNS; j++) {
-    let entry = '';
-    if (grid[i][j] <= 0.5) {
-      entry = ".";
-    } else {
-      entry = "X";
-    }
+//   for (let j = 0; j < MAX_COLUMNS; j++) {
+//     let entry = '';
+//     if (grid[i][j] <= 0.5) {
+//       entry = ".";
+//     } else {
+//       entry = "X";
+//     }
 
-    row += entry;
-  }
+//     row += entry;
+//   }
 
-  console.log(row);
-}
+//   console.log(row);
+// }
